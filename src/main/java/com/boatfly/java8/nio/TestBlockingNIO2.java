@@ -12,20 +12,9 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
 /**
- * 使用NIO完成网络通信的三个核心：
- * - channel
- *      java.nio.channels.Channel
- *        - SelectChannel
- *          - SocketChannel
- *          - ServerSocketChannel
- *          - DatagramChannel
- *
- *          - Pipe.SinkChannel
- *          - pipe.SourceChannel
- * - buffer
- * - selector 选择器，SelectChannle的多路复用器，用于监控SelectChanneld的IO状况。
+ * 相较于TestBlockingNIO,多了client要接收server的反馈
  */
-public class TestBlockingNIO {
+public class TestBlockingNIO2 {
     //客户端
     @Test
     public void client() {
@@ -45,18 +34,28 @@ public class TestBlockingNIO {
                 buffer.clear();
             }
 
+            socketChannel.shutdownOutput();
+
+            //接收服务端的反馈
+            int len=0;
+            while ((len = socketChannel.read(buffer))!=-1){
+                buffer.flip();
+                System.out.println(new String(buffer.array(),0,len));
+                buffer.clear();
+            }
+
         } catch (IOException e) {
             e.printStackTrace();
         }finally {
             try {
                 if(socketChannel.isConnected())
-                socketChannel.close();
+                    socketChannel.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
             try {
                 if(inChannel.isOpen())
-                inChannel.close();
+                    inChannel.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -75,28 +74,36 @@ public class TestBlockingNIO {
             //获取客户端连接
             SocketChannel client = ssChannel.accept();
             //读取客户端发送的数据
-            outChannel = FileChannel.open(Paths.get("img/jvm2.png"),StandardOpenOption.WRITE,StandardOpenOption.CREATE);
+            outChannel = FileChannel.open(Paths.get("img/jvm3.png"),StandardOpenOption.WRITE,StandardOpenOption.CREATE);
             ByteBuffer buffer= ByteBuffer.allocate(1024);
             while (client.read(buffer)!=-1){
                 buffer.flip();
                 outChannel.write(buffer);
                 buffer.clear();
             }
+
+            // 发送反馈给客户端
+            buffer.put("数据接收成功！".getBytes());
+            buffer.flip();
+            client.write(buffer);
+
+            client.close();
         } catch (IOException e) {
             e.printStackTrace();
         }finally {
             try {
                 if (ssChannel.isOpen())
-                ssChannel.close();
+                    ssChannel.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
             try {
                 if (outChannel.isOpen())
-                outChannel.close();
+                    outChannel.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
         }
     }
 }
