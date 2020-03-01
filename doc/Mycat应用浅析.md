@@ -23,6 +23,8 @@
 get Mycat-server-1.6.7.4-release-20200105164103-mac.tar.gz
 tar -zxvf Mycat-server-1.6.7.4-release-20200105164103-mac.tar.gz
 cp -r Mycat /usr/local/
+
+./mycat start
 ```
 ### 配置文件 （./conf/）
 - schema.xml 定义逻辑库、表、分片节点等内容
@@ -135,6 +137,42 @@ mysql> show master status;
 - 数据库方式 推荐 （server.xml ）
 - 时间戳方式
 - 自主生成全局序列
+
+#### CONF
+- wrapper.conf 
+  - wrapper.java.additional.9=-Xmx4G
+  - wrapper.java.additional.10=-Xms1G
+- server.xml
+  - user setting
+    - property schemas
+      - vip_admin,vip_order,vip_payment//定义用户权限内的逻辑库
+    - property readOnly 默认false
+      - false //如果对上述逻辑库只读，需要更改为false
+- schema.xml
+  - schema
+    - 逻辑数据库 映射 真实物理数据定义
+      - navicat连接mycat(用server.xml中定义的user连接)，可见的就是配置的逻辑库
+    - primaryKey
+      - rule 分片规则，具体规则在rule.xml中定义
+    - dataNode
+      - dn1,dn2,dn3
+    - rule
+      - mode-long
+  - dataNode
+    - dataHost
+    - database
+      - 真实数据库
+  - dataHost
+    - connection pool
+    - readonly
+    - writeonly 
+- rule.xml 定义分片规则
+  - tableRule
+    - algorithm 算法规则，具体规则在function模块定义
+  - function
+    - name
+    - class="com.boatfly.codehub.xxx"" //实现某个分片算法的实现类
+      - property name="count" //分片的数量
 
 ## 高可用
 HAProxy+Keepalived配合两台Mycat搭建Mycat集群。
