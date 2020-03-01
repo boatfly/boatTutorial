@@ -143,6 +143,15 @@ mysql> show master status;
   - wrapper.java.additional.9=-Xmx4G
   - wrapper.java.additional.10=-Xms1G
 - server.xml
+  - serverPort 8066
+  - managePort 9066
+  - sequenceHandlerType 
+    - 0 本地文件方式
+      - sequence_conf.properties
+    - 1 数据库方式
+      - sequence_db_conf.properties
+    - 2 时间戳方式
+      - sequence_time_conf.properties
   - user setting
     - property schemas
       - vip_admin,vip_order,vip_payment//定义用户权限内的逻辑库
@@ -152,6 +161,7 @@ mysql> show master status;
   - schema
     - 逻辑数据库 映射 真实物理数据定义
       - navicat连接mycat(用server.xml中定义的user连接)，可见的就是配置的逻辑库
+        - 用navicat连接后，看到的表无法双击打开，只能通过查询语句查看数据；
     - primaryKey
       - rule 分片规则，具体规则在rule.xml中定义
     - dataNode
@@ -165,6 +175,11 @@ mysql> show master status;
   - dataHost
     - connection pool
     - readonly
+      - 设置balance (0,1,2,3)
+        - 0 不开启读写分离
+        - 1 所有的读随机分配到（readnode or non-writenode）上，读写推荐配置此项=1
+        - 2 所有的读随机分配到所有（r/w）节点
+        - 3 
     - writeonly 
 - rule.xml 定义分片规则
   - tableRule
@@ -173,6 +188,18 @@ mysql> show master status;
     - name
     - class="com.boatfly.codehub.xxx"" //实现某个分片算法的实现类
       - property name="count" //分片的数量
+      
+#### 常见问题
+- 修改mycat配置文件，需要重启，如何避免？
+  - mycat高可用集群
+  - zk自动发现配置信息
+- 将原有连mysql系统升级到mycat
+  - 只需在connection配置的地方直接连mycat中的逻辑库即可
+  - 主键生成策略需要使用分布式策略
+    - 更新插入语句id策略
+      - insert into order(id,....) values(next value for MYCATSEQ_GLOBAL,....)
+      - MYCATSEQ_ 对应id生成策略文件
+        - sequence_conf.properties (本地文件方式，不推荐，见全局系列 部分说明)
 
 ## 高可用
 HAProxy+Keepalived配合两台Mycat搭建Mycat集群。
