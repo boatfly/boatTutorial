@@ -46,7 +46,7 @@ class ArrayQueue {
         return front == rear;
     }
 
-    public void add(int num) {
+    public void add(Integer num) {
         if (!isFull()) {
             //front++;取数据时，才更新front值
             rear++;
