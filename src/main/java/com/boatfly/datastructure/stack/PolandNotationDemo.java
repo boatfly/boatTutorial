@@ -6,7 +6,7 @@ package com.boatfly.datastructure.stack;
  * - 中缀 默认人类理解的方式
  * - 后缀，从左至右解析表达式
  */
-public class ProlandNotationDemo {
+public class PolandNotationDemo {
     public static void main(String[] args) {
         //(3+4)x5-6 -> 3 4 + 5 x 6 -
         String suffixExpression = "3 4 + 5 x 6 -";
