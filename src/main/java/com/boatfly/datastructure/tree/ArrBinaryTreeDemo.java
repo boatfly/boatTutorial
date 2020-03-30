@@ -8,7 +8,7 @@ package com.boatfly.datastructure.tree;
  * 3.第n个元素的右子节点为2*n+2
  * 4.第n个元素的父节点为(n-1)/2
  */
-public class ArrBinaryTreeTest {
+class ArrBinaryTreeTest {
     public static void main(String[] args) {
         int[] arr = new int[]{1, 2, 3, 4, 5, 6, 7};
         ArrBinaryTree arrBinaryTree = new ArrBinaryTree(arr);
