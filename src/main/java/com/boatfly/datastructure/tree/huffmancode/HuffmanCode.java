@@ -23,8 +23,61 @@ public class HuffmanCode {
 
         Map<Byte, String> huffmancode = getCodes(huffmanTreeRoot);
         System.out.println(huffmancode);
+
+        byte[] hufumanCodeBytes = zip(bytes, huffmancode);
+        System.out.println("hufumanCodeBytes=" + Arrays.toString(hufumanCodeBytes));
     }
 
+    /**
+     * 统一封装
+     * @param src
+     * @return
+     */
+    public static byte[] huffmancodeZip(byte[] src){
+        List<Node> nodes = getNodes(src);
+        //创建霍夫曼树
+        Node huffmanTreeRoot = createHuffmanTree(nodes);
+        //生成霍夫曼码表
+        Map<Byte, String> huffmancode = getCodes(huffmanTreeRoot);
+        byte[] hufumanCodeBytes = zip(src, huffmancode);
+        return hufumanCodeBytes;
+    }
+
+    //将指定的byte[]，通过霍夫曼编码，转换为压缩后的byte[]
+    //补充知识点：二进制 原码 反码 和 补码
+    public static byte[] zip(byte[] src, Map<Byte, String> hufumancode) {
+        StringBuilder sb = new StringBuilder();
+        for (Byte b : src) {
+            sb.append(hufumancode.get(b));
+//            sb.append(" ");
+        }
+        System.out.println(sb);
+        //将sb转为byte[]
+        int len;
+        if (sb.length() % 8 == 0) {
+            len = sb.length() / 8;
+        } else {
+            len = sb.length() / 8 + 1;
+        }//上述if/else等价于len = (sb.length()+7)/8
+
+        //创建存储压缩后的byte[]
+        byte[] retBytes = new byte[len];
+        int index = 0;
+        for (int i = 0; i < sb.length(); i += 8) {//每8位一个byte，所以步长+8
+            String temp;
+            if (i + 8 > sb.length()) {
+                temp = sb.substring(i);
+            } else
+                temp = sb.substring(i, i + 8);
+            //将temp转成一个byte，放入retBytes
+            retBytes[index] = (byte) Integer.parseInt(temp, 2);
+            index++;
+        }
+
+        return retBytes;
+    }
+
+    //生成霍夫曼编码
     public static Map<Byte, String> getCodes(Node root) {
         if (root == null) {
             return null;
