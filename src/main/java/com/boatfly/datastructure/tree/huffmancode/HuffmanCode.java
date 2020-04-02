@@ -9,31 +9,119 @@ public class HuffmanCode {
     public static void main(String[] args) {
         String str = "global pool specification definition instance";
         byte[] bytes = str.getBytes();
-        System.out.println("content's length=" + bytes.length);
-        List<Node> nodes = getNodes(bytes);
-        System.out.println(nodes);
-        System.out.println("霍夫曼树：");
-        Node huffmanTreeRoot = createHuffmanTree(nodes);
-        //前序遍历
-        preOrder(huffmanTreeRoot);
+//        System.out.println("content's length=" + bytes.length);
+//        List<Node> nodes = getNodes(bytes);
+//        System.out.println(nodes);
+//        System.out.println("霍夫曼树：");
+//        Node huffmanTreeRoot = createHuffmanTree(nodes);
+//        //前序遍历
+//        preOrder(huffmanTreeRoot);
+//
+//        //
+//        createHuffmanCode(huffmanTreeRoot, "", sb);
+//        System.out.println(huffmancodes);
+//
+//        Map<Byte, String> huffmancode = getCodes(huffmanTreeRoot);
+//        System.out.println(huffmancode);
+//
+//        byte[] hufumanCodeBytes = zip(bytes, huffmancode);
+//        System.out.println("hufumanCodeBytes=" + Arrays.toString(hufumanCodeBytes));
 
-        //
-        createHuffmanCode(huffmanTreeRoot, "", sb);
-        System.out.println(huffmancodes);
+        byte[] bytes1 = huffmancodeZip(bytes);
+        System.out.println("压缩前长度" + bytes.length + ",压缩后长度：" + bytes1.length);
+        String s = Byte2bitstring(false, (byte) -1);
+//        String s = Byte2bitstring(true, (byte) 1);
+        System.out.println(s);
+        byte[] bytes2 = decodeHuffmanCode(huffmancodes, bytes1);
+        System.out.println(new String(bytes2));
+    }
 
-        Map<Byte, String> huffmancode = getCodes(huffmanTreeRoot);
-        System.out.println(huffmancode);
+    /**
+     * 完成数据的解压
+     * 1.将huffmancodes重新转换成 霍夫曼编码对应的二进制字符串
+     * 2.将二进制字符串 对照霍夫曼编码 解码
+     */
+    public void unzip() {
 
-        byte[] hufumanCodeBytes = zip(bytes, huffmancode);
-        System.out.println("hufumanCodeBytes=" + Arrays.toString(hufumanCodeBytes));
+    }
+
+    /**
+     * 完成对压缩数据的解码
+     */
+    public static byte[] decodeHuffmanCode(Map<Byte,String> huffmancodes,byte[] huffmanBytes){
+        // 先得到huffmanBytes对应的二进制字符串
+        StringBuilder stringBuilder = new StringBuilder();
+        for(int i=0;i<huffmanBytes.length;i++){
+            boolean flag = (i == huffmanBytes.length-1);
+            stringBuilder.append(Byte2bitstring(!flag,huffmanBytes[i]));
+        }
+        System.out.println("霍夫曼字节数组转换后的二进制字符串："+stringBuilder.toString());
+
+        //把得到的二进制字符串按照指定的霍夫曼编码进行解码
+        //把霍夫曼编码表进行调转，因为反向查询
+        Map<String,Byte> map = new HashMap<>();
+        for(Map.Entry<Byte,String> entry:huffmancodes.entrySet()){
+            map.put(entry.getValue(),entry.getKey());
+        }
+        System.out.println("map="+map);
+
+        //创建集合，存放byte
+        List<Byte> list = new ArrayList<>();
+        for(int i=0;i<stringBuilder.length();){
+            int count =1;
+            boolean flag = true;
+            Byte b = null;
+            while(flag){
+                String key = stringBuilder.substring(i,i+count);
+                b = map.get(key);
+                if(b!=null){
+                    flag = false;
+                }else{
+                    count++;
+                }
+            }
+            list.add(b);
+            i+=count;
+        }
+
+        byte b[] = new byte[list.size()];
+        for (int i = 0; i < b.length; i++) {
+            b[i]= list.get(i);
+        }
+        return b;
+    }
+
+    /**
+     * 将一个Byte转为二进制字符串，需补充知识点：二进制的原码，补码，反码
+     *
+     * @param b 传入的byte
+     * @param flag 是否需要补高位 true：补高位  false：不补(如果是最后一个字节，无须补高位)
+     * @return b 对应的二进制字符串 （按补码返回）
+     */
+    public static String Byte2bitstring(boolean flag,byte b) {
+        int temp = b;
+        if(flag) {
+            //如果是正数，需要补高位
+            temp |= 256;//按位与 256=>1 0000 0000 | 0000 0001 => 1 0000 0001
+        }
+        String s = Integer.toBinaryString(temp);//temp对应的时temp的二进制补码
+//        System.out.println(s);
+//        System.out.println(s.substring(s.length() - 8));
+        if(flag){
+            return s.substring(s.length() - 8);
+        }else{
+            return s;
+        }
+
     }
 
     /**
      * 统一封装
+     *
      * @param src
      * @return
      */
-    public static byte[] huffmancodeZip(byte[] src){
+    public static byte[] huffmancodeZip(byte[] src) {
         List<Node> nodes = getNodes(src);
         //创建霍夫曼树
         Node huffmanTreeRoot = createHuffmanTree(nodes);
